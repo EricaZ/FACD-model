@@ -1,0 +1,51 @@
+library(evd)
+library(optimx)
+setwd("~/FACDapp/Newtons_code")
+source("ComputeIS.R")
+source("ComputeGrad.R")
+source("ComputeCondDur.R")
+source("ComputeC.R")
+source("FitFACD.R")
+source("FitWACD.R")
+source("FitEACD.R")
+source("ComputeOmega.R")
+source("handledata.R")
+source("ComputeIS_dual.R")
+source("ComputeC_dual.R")
+source("ComputeLoglik_dual.R")
+source("FitACD_2-stage_correct.R")
+source("FitFACD_fix.R")
+source("ComputeISgeneral.R")
+source("ComputeISgeneral_dual.R")
+source("FitACDgeneral.R")
+source("FitACDgeneral_fix.R")
+source("FitACDgeneral_optim.R")
+source("FitEACDgeneral.R")
+source("SimulateACDgeneral.R")
+source("SimulateACD.R")
+source("ACD_Lik.R")
+
+id.str <- "test"
+xd <- SimulateACDgeneral(param = list(w = 0.1, a.vec = 0.2, b.vec = 0.6, r = 2), offset = 200, num.n = 1000, num.rep = 1, distrib = "frechet") 
+testfit <- FitACDgeneral_optim(xd[,1], id.str, p = 1, q = 1, maxit = 100, init.param = c(2,0.1,0.2,0.6), distrib = "frechet")
+
+mean(testfit$res)
+
+xdata <- seq(from=0, to=7, by=0.001)
+res.den4 <- density(testfit$res, adj=1)
+r <- testfit$param[1]
+theo.den4 <- dfrechet(xdata, loc = 0, scale = 1 / gamma(1 - 1 / r), shape = r, log = FALSE)
+emp.q4 <- quantile(testfit$res, probs = seq(0.01, 0.99, 0.01))
+theo.q4 <- qfrechet(p=seq(0.01, 0.99, 0.01), loc=0, scale=1 / gamma(1 - 1 / r), shape = r, lower.tail = TRUE)
+
+plot(theo.den4~xdata, type="l", col="blue", ylim=c(0, 3.5), lty="dashed", ylab=NA, main = paste("fix gamma = ", r))
+lines(res.den4)
+
+plot(theo.den4~xdata, type="l", col="blue", xlim=c(3, 7), ylim=c(0, 0.1), lty="dashed", ylab=NA)
+lines(res.den4)
+
+plot(theo.q4, emp.q4, ylim=c(0,12), xlim=c(0,9))
+lines(0:20, 0:20)
+
+# plot(theo.q4, emp.q4/mean(testfit$res), ylim=c(0,12), xlim=c(0,9))
+# lines(0:20, 0:20)
